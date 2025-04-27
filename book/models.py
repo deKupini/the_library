@@ -21,3 +21,11 @@ class Book(models.Model):
         self.borrower = borrower_number
         self.borrow_date = timezone.now().date()
         self.save()
+
+    def return_book(self):
+        if not self.borrowed:
+            raise ValidationError
+        self.borrowed = False
+        self.borrower = None
+        self.borrow_date = None
+        self.save()
