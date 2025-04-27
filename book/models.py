@@ -1,4 +1,7 @@
 from django.db import models
+from django.utils import timezone
+from rest_framework.exceptions import ValidationError
+
 
 class Book(models.Model):
     id = models.CharField(primary_key=True, max_length=6)
@@ -10,3 +13,11 @@ class Book(models.Model):
 
     def __str__(self):
         return self.title
+
+    def borrow(self, borrower_number):
+        if self.borrowed:
+            raise ValidationError
+        self.borrowed = True
+        self.borrower = borrower_number
+        self.borrow_date = timezone.now().date()
+        self.save()
