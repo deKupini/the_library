@@ -1,6 +1,8 @@
 import datetime
 import pytest
 
+from rest_framework.test import APIClient
+
 from book.models import Book
 
 
@@ -23,3 +25,8 @@ def borrowed_book(db):
         borrower="098765",
         borrow_date=datetime.date(2025, 4, 25),
     )
+
+
+@pytest.fixture
+def client():
+    return APIClient()
