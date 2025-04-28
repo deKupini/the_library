@@ -68,9 +68,22 @@ def test_create_book(client, db):
         "author": "author", "borrow_date": None, "borrowed": False, "borrower": None, "id": "123456", "title": "title"
     }
 
+@pytest.mark.parametrize("book_id", ["12345", "1234567", "12345A"])
+def test_create_book_with_invalid_id(book_id, client, db):
+    data = {
+        "id": book_id,
+        "title": "title",
+        "author": "author",
+    }
+    response = client.post(BOOKS_URL, data)
+
+    assert response.status_code == HTTP_400_BAD_REQUEST
+    assert response.json() == {"id": ["Ensure this value is digit with 6 characters."]}
+    assert not Book.objects.exists()
+
 
 @pytest.mark.parametrize("field", ["id", "title", "author"])
-def test_create_book_required_fields(client, db, field):
+def test_create_book_without_required_fields(client, db, field):
     data = {
         "id": "123456",
         "title": "title",
