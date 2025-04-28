@@ -4,11 +4,12 @@ import pytest
 from freezegun import freeze_time
 from rest_framework.exceptions import ValidationError
 from rest_framework.reverse import reverse
-from rest_framework.status import HTTP_201_CREATED, HTTP_400_BAD_REQUEST
+from rest_framework.status import HTTP_201_CREATED, HTTP_400_BAD_REQUEST, HTTP_204_NO_CONTENT, HTTP_404_NOT_FOUND
 
 from book.models import Book
 
 BOOKS_URL = reverse("book-list")
+BOOK_DETAIL_URL = "book-detail"
 
 
 @freeze_time("2025-04-25")
@@ -93,3 +94,28 @@ def test_create_book_with_duplicated_id(book, client, db):
     assert response.status_code == HTTP_400_BAD_REQUEST
     assert response.json() == {"id": ["book with this id already exists."]}
     assert len(Book.objects.all()) == 1
+
+
+def test_delete_book(book, client, db):
+    url = reverse(BOOK_DETAIL_URL, kwargs={"pk": book.id})
+    response = client.delete(url)
+
+    assert response.status_code == HTTP_204_NO_CONTENT
+    assert not Book.objects.exists()
+
+
+def test_delete_not_existing_book(client, db):
+    url = reverse(BOOK_DETAIL_URL, kwargs={"pk": "123456"})
+    response = client.delete(url)
+
+    assert response.status_code == HTTP_404_NOT_FOUND
+    assert not Book.objects.exists()
+
+
+def test_delete_borrowed_book(borrowed_book, client, db):
+    url = reverse(BOOK_DETAIL_URL, kwargs={"pk": borrowed_book.id})
+    response = client.delete(url)
+
+    assert response.status_code == HTTP_400_BAD_REQUEST
+    assert response.json() == {'msg': 'Cannot delete borrowed book.'}
+    assert Book.objects.exists()
