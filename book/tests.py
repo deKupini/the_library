@@ -218,11 +218,23 @@ def test_borrow_already_borrowed_book_endpoint(borrowed_book, client):
     assert response.json() == {"msg": "Book is already borrowed."}
 
 
-def test_borrow_book_without_borrower_endpoint(borrowed_book, client):
-    url = reverse("book-borrow", kwargs={"pk": borrowed_book.id})
+def test_borrow_book_without_borrower_endpoint(book, client):
+    url = reverse("book-borrow", kwargs={"pk": book.id})
     data = {}
     response = client.patch(url, data)
 
     assert response.status_code == HTTP_400_BAD_REQUEST
 
+
+@pytest.mark.parametrize("borrower", ["12345", "1234567", "12345A"])
+def test_borrow_book_with_invalid_borrower_endpoint(book, client, borrower):
+    url = reverse("book-borrow", kwargs={"pk": book.id})
+    data = {
+        "borrower": borrower
+    }
+    response = client.patch(url, data)
+
+    assert response.status_code == HTTP_400_BAD_REQUEST
+    book.refresh_from_db()
+    assert not book.borrowed
 

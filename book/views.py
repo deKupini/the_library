@@ -21,14 +21,22 @@ class BookViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         return Response(status=HTTP_404_NOT_FOUND)
 
+    @staticmethod
+    def _validate_borrower(borrower):
+        if len(borrower) != 6 or not borrower.isdigit():
+            raise ValidationError({"borrower": "Ensure this value is digit with 6 characters."})
+
     @action(detail=True, methods=["patch"])
     def borrow(self, request, pk):
         book = self.get_object()
         borrower = request.data.get("borrower")
         if not borrower:
             return Response({"msg": "Borrower is required."}, status=HTTP_400_BAD_REQUEST)
+        self._validate_borrower(borrower)
+
         try:
             book.borrow(request.data["borrower"])
         except ValidationError:
             return Response({"msg": "Book is already borrowed."}, status=HTTP_400_BAD_REQUEST)
+
         return Response({"msg": "Book borrowed successfully"}, status=HTTP_200_OK)
