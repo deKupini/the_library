@@ -4,7 +4,8 @@ import pytest
 from freezegun import freeze_time
 from rest_framework.exceptions import ValidationError
 from rest_framework.reverse import reverse
-from rest_framework.status import HTTP_201_CREATED, HTTP_400_BAD_REQUEST, HTTP_204_NO_CONTENT, HTTP_404_NOT_FOUND
+from rest_framework.status import HTTP_201_CREATED, HTTP_400_BAD_REQUEST, HTTP_204_NO_CONTENT, HTTP_404_NOT_FOUND, \
+    HTTP_200_OK
 
 from book.models import Book
 
@@ -117,5 +118,52 @@ def test_delete_borrowed_book(borrowed_book, client, db):
     response = client.delete(url)
 
     assert response.status_code == HTTP_400_BAD_REQUEST
-    assert response.json() == {'msg': 'Cannot delete borrowed book.'}
+    assert response.json() == {"msg": "Cannot delete borrowed book."}
     assert Book.objects.exists()
+
+
+def test_get_list_of_single_book(book, client):
+    response = client.get(BOOKS_URL)
+
+    assert response.status_code == HTTP_200_OK
+    assert response.json() == [
+        {"id": "123456", "title": "title", "author": "author", "borrowed": False, "borrow_date": None, "borrower": None}
+    ]
+
+
+def test_get_list_of_two_books(book, borrowed_book, client):
+    response = client.get(BOOKS_URL)
+
+    assert response.status_code == HTTP_200_OK
+    assert response.json() == [
+        {
+            "id": "123456",
+            "title": "title",
+            "author": "author",
+            "borrowed": False,
+            "borrow_date": None,
+            "borrower": None
+        },
+        {
+            "id": "012345",
+            "title": "title_2",
+            "author": "author_2",
+            "borrowed": True,
+            "borrow_date": "2025-04-25",
+            "borrower": "098765"
+        }
+    ]
+
+
+def test_get_list_of_empty_list(client, db):
+    response = client.get(BOOKS_URL)
+
+    assert response.status_code == HTTP_200_OK
+    assert response.json() == []
+
+
+def test_get_single_book(book, client):
+    url = reverse(BOOK_DETAIL_URL, kwargs={"pk": book.id})
+    response = client.get(url)
+
+    assert response.status_code == HTTP_404_NOT_FOUND
