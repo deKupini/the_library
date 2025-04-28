@@ -224,3 +224,5 @@ def test_borrow_book_without_borrower_endpoint(borrowed_book, client):
     response = client.patch(url, data)
 
     assert response.status_code == HTTP_400_BAD_REQUEST
+
+

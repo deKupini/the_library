@@ -11,3 +11,4 @@ class BookSerializer(serializers.ModelSerializer):
     def validate_id(self, value):
         if len(value) != 6 or not value.isdigit():
             raise serializers.ValidationError("Ensure this value is digit with 6 characters.")
+        return value

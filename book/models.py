@@ -4,7 +4,7 @@ from rest_framework.exceptions import ValidationError
 
 
 class Book(models.Model):
-    id = models.CharField(primary_key=True, max_length=9999)
+    id = models.CharField(primary_key=True)
     title = models.CharField(max_length=100)
     author = models.CharField(max_length=100)
     borrowed = models.BooleanField(default=False)
