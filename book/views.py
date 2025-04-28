@@ -2,7 +2,7 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
-from rest_framework.status import HTTP_404_NOT_FOUND
+from rest_framework.status import HTTP_404_NOT_FOUND, HTTP_400_BAD_REQUEST, HTTP_200_OK
 
 from .models import Book
 from .serializers import BookSerializer
@@ -24,8 +24,11 @@ class BookViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["patch"])
     def borrow(self, request, pk):
         book = self.get_object()
+        borrower = request.data.get("borrower")
+        if not borrower:
+            return Response({"msg": "Borrower is required."}, status=HTTP_400_BAD_REQUEST)
         try:
             book.borrow(request.data["borrower"])
         except ValidationError:
-            return Response({"msg": "Book is already borrowed."}, status=400)
-        return Response({"message": "Book borrowed successfully"}, status=200)
+            return Response({"msg": "Book is already borrowed."}, status=HTTP_400_BAD_REQUEST)
+        return Response({"msg": "Book borrowed successfully"}, status=HTTP_200_OK)

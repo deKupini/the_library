@@ -174,7 +174,6 @@ def test_borrow_book_endpoint(book, client):
     url = reverse("book-borrow", kwargs={"pk": book.id})
     data = {
         "borrower": "098765"
-
     }
     response = client.patch(url, data)
 
@@ -204,3 +203,11 @@ def test_borrow_already_borrowed_book_endpoint(borrowed_book, client):
 
     assert response.status_code == HTTP_400_BAD_REQUEST
     assert response.json() == {"msg": "Book is already borrowed."}
+
+
+def test_borrow_book_without_borrower_endpoint(borrowed_book, client):
+    url = reverse("book-borrow", kwargs={"pk": borrowed_book.id})
+    data = {}
+    response = client.patch(url, data)
+
+    assert response.status_code == HTTP_400_BAD_REQUEST
