@@ -167,3 +167,40 @@ def test_get_single_book(book, client):
     response = client.get(url)
 
     assert response.status_code == HTTP_404_NOT_FOUND
+
+
+@freeze_time("2025-04-25")
+def test_borrow_book_endpoint(book, client):
+    url = reverse("book-borrow", kwargs={"pk": book.id})
+    data = {
+        "borrower": "098765"
+
+    }
+    response = client.patch(url, data)
+
+    assert response.status_code == HTTP_200_OK
+    book.refresh_from_db()
+    assert book.borrowed
+    assert book.borrow_date.strftime("%Y-%m-%d") == "2025-04-25"
+    assert book.borrower == data["borrower"]
+
+
+def test_borrow_not_existing_book_endpoint(client, db):
+    url = reverse("book-borrow", kwargs={"pk": "123456"})
+    data = {
+        "borrower": "098765"
+    }
+    response = client.patch(url, data)
+
+    assert response.status_code == HTTP_404_NOT_FOUND
+
+
+def test_borrow_already_borrowed_book_endpoint(borrowed_book, client):
+    url = reverse("book-borrow", kwargs={"pk": borrowed_book.id})
+    data = {
+        "borrower": "098765"
+    }
+    response = client.patch(url, data)
+
+    assert response.status_code == HTTP_400_BAD_REQUEST
+    assert response.json() == {"msg": "Book is already borrowed."}
