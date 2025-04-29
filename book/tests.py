@@ -1,5 +1,3 @@
-import datetime
-
 import pytest
 from freezegun import freeze_time
 from rest_framework.exceptions import ValidationError
@@ -11,6 +9,15 @@ from book.models import Book
 
 BOOKS_URL = reverse("book-list")
 BOOK_DETAIL_URL = "book-detail"
+
+
+def test_book__str__(db):
+    book = Book.objects.create(
+        id='123456',
+        title='title',
+        author='author',
+    )
+    assert book.__str__() == book.title
 
 
 @freeze_time("2025-04-25")
