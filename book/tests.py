@@ -238,3 +238,29 @@ def test_borrow_book_with_invalid_borrower_endpoint(book, client, borrower):
     book.refresh_from_db()
     assert not book.borrowed
 
+
+def test_return_book_endpoint(borrowed_book, client):
+    url = reverse("book-return", kwargs={"pk": borrowed_book.id})
+    response = client.patch(url)
+
+    assert response.status_code == HTTP_200_OK
+    borrowed_book.refresh_from_db()
+    assert not borrowed_book.borrowed
+    assert borrowed_book.borrow_date is None
+    assert borrowed_book.borrower is None
+
+
+def test_return_not_existing_book_endpoint(client, db):
+    url = reverse("book-return", kwargs={"pk": "123456"})
+    response = client.patch(url)
+
+    assert response.status_code == HTTP_404_NOT_FOUND
+
+
+def test_return_not_borrowed_book_endpoint(book, client):
+    url = reverse("book-return", kwargs={"pk": book.id})
+    response = client.patch(url)
+
+    assert response.status_code == HTTP_400_BAD_REQUEST
+
+

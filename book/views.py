@@ -40,3 +40,13 @@ class BookViewSet(viewsets.ModelViewSet):
             return Response({"msg": "Book is already borrowed."}, status=HTTP_400_BAD_REQUEST)
 
         return Response({"msg": "Book borrowed successfully"}, status=HTTP_200_OK)
+
+    @action(detail=True, methods=["patch"], url_path="return", url_name="return")
+    def return_(self, request, pk):
+        book = self.get_object()
+        try:
+            book.return_book()
+        except ValidationError:
+            return Response({"msg": "Book is already returned."}, status=HTTP_400_BAD_REQUEST)
+
+        return Response({"msg": "Book returned successfully"}, status=HTTP_200_OK)
